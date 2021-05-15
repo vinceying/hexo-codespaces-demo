@@ -1,0 +1,46 @@
+name: Deploy to Repo
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env: 
+      hTZ: Asia/Shanghai
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        ref: master
+
+    - name: Update Submodule
+      run: |
+        git submodule init
+        git submodule update --remote
+    - name: Setup Node
+      uses: actions/setup-node@v2
+      with:
+        node-version: "14"
+
+    - name: Hexo Generate
+      run: |
+        cd blog
+        rm -f .yarnclean
+        yarn --frozen-lockfile --ignore-engines --ignore-optional --non-interactive --silent --ignore-scripts --production=false
+        rm -rf ./public
+        yarn run hexo clean
+        yarn run hexo generate
+    - name: Hexo Deploy
+      env:
+        SSH_PRIVATE: ${{ secrets.SSH_PRIVATE }}
+        GIT_NAME: vinceying
+        GIT_EMAIL: admin@vicne.pub
+      run: |
+        cd blog
+        mkdir -p ~/.ssh/
+        echo "$SSH_PRIVATE" | tr -d '\r' > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan github.com >> ~/.ssh/known_hosts
+        git config --global user.name "$GIT_NAME"
+        git config --global user.email "$GIT_EMAIL"
+        yarn run hexo deploy
