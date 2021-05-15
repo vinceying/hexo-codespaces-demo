@@ -63,5 +63,5 @@ theme: hexo-theme-fluid
 
 deploy:
   type: git
-  branch: test
-  repository: git@github.com:vinceying/Blog-Source.git
+  branch: gh-pages
+  repository: git@github.com:vinceying/hexo-codespaces-demo.git
